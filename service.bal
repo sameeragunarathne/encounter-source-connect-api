@@ -1,9 +1,9 @@
 import ballerina/http;
 import wso2healthcare/healthcare.clients.fhirr4;
 
-configurable string base = ?;
-configurable string tokenUrl = ?;
-configurable string clientId = ?;
+configurable string base = "https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4";
+configurable string tokenUrl = "https://fhir.epic.com/interconnect-fhir-oauth/oauth2/token";
+configurable string clientId = "801f42e8-485c-4afb-b34f-9a0ca0d9ae2e";
 
 // FHIR client configuration for Epic.
 fhirr4:FHIRConnectorConfig epicConfig = {
@@ -34,7 +34,7 @@ service / on new http:Listener(9091) {
     # + return - Returns the FHIR resource as a json payload or an error.
     resource function get read/[string id]() returns json|error {
 
-        // This is only a sample implementation. You are required to implement this based on your source system/s.
+        // The following example is using FHIR client to connect to the Epic FHIR server to read an Encounter resource.
         fhirr4:FHIRResponse|fhirr4:FHIRError fhirResponse = fhirConnectorObj->getById("Encounter", id);
         return handleResponse(fhirResponse);
     }
@@ -54,6 +54,7 @@ service / on new http:Listener(9091) {
         map<string|string[]> queryParams = req.getQueryParams();
         fhirr4:SearchParameters searchParams = {};
 
+        //Construct the search parameters based on the query parameters to be passed to the FHIR client connector.
         if queryParams.hasKey("_id") {
             string|string[] idVal = queryParams.get("_id");
             if idVal is string[] {
@@ -62,7 +63,7 @@ service / on new http:Listener(9091) {
         } else if queryParams.hasKey("patient") {
             string|string[] patientVal = queryParams.get("patient");
             if patientVal is string[] {
-                searchParams["patient"] = patientVal;
+                searchParams["patient"] = patientVal[0];
             }
         } else if queryParams.hasKey("_profile") {
             string|string[] profileVal = queryParams.get("_profile");
@@ -75,6 +76,7 @@ service / on new http:Listener(9091) {
                 searchParams._lastUpdated = lastUpdatedVal;
             }
         }
+        // This following code segment is using FHIR client to connect to the Epic FHIR server to searcg Encounter resources.
         fhirr4:FHIRResponse|fhirr4:FHIRError fhirResponse = fhirConnectorObj->search("Encounter", searchParams);
         return handleResponse(fhirResponse);
     }
